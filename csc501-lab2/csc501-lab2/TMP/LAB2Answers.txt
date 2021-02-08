@@ -1,0 +1,69 @@
+Q1)The priority inversion problem could cause that a higher-priority process needs to wait for the completion of a lower-priority process.
+
+1)Priority inheritance is one approach to address this issue. Please give another approach and briefly describe its idea.
+
+Priority Ceiling is one alternative: in this each and every lock or mutex which is created is associated with a prioirty which is greater than most of the processes and when a process acquires a lock
+its prioirty is changed to the priotity that is associated with that lock.
+
+Random boosting
+Ready tasks holding locks are randomly boosted in priority until they exit the critical section.
+
+Avoiding Blocking:
+Use techinques like non blocking synchronization to avoid blocking of high priority process by low priority process.  
+
+
+Reference: https://en.wikipedia.org/wiki/Priority_inversion
+
+
+2)Design a test case to show that your approach can address the priority inversion problem. You should compare the results that derived from the original XINU implementation (use semaphore) 
+and that derived from your implementation (use readers/writer locks). Put your results in Lab2Answers.txt and your test case program (name it task1.c) in both ./sys and ./TMP
+
+reader A has priority 5 , writer B has prioirty 20, writer C has prioirty 50 . And main resumes readerA first which acquires lock1 or sem1 and will sleep for 2 sec. Now writer B is resumed and it will acquire lock or sem 
+respectively and will sleep for 1 sec. Now writer C is resumed and it tries to acquire lock1 or sem1 but readerA has already acquired that resource so it will wait in wait queue of that lock or semaphore respectively. 
+So in lock implementation the prioirty of reader A gets boosted to 50 and it releases the lock first but in default xinu implementation since writer B(20) has prioirty more than reader A(5) , writer B will release the lock first then reader A will release lock.
+So in default implementation process with highest prioirty writer C is waiting for both writer B and reader A to get completed but in lock implementation due to prioirty inheritance, process reader A prioirty is boosted and it is completed before process B 
+so that process C can continue its execution.
+
+
+
+Semaphore results:
+
+Semaphore implementation :
+  readers A: to acquire semaphore
+  readers A: acquired semaphore,sleep 2s
+  writers B: to acquire semaphore
+  writers B: acquired semaphore, sleep 2s
+  writers C: to acquire lock
+  writers B: to release semaphore
+  readers A: to release semaphore
+  writers C: acquired semaphore, sleep 2s
+  writers C: to release semaphore
+
+
+
+Lock results: 
+
+  reader A: to acquire lock
+  reader A: acquired lock, sleep 2s
+  writer B: to acquire lock
+  writer B: acquired lock, sleep 2s
+  writer C: to acquire lock
+  reader A: to release lock
+  writer C: acquired lock, sleep 2s
+  writer B: to release lock
+  writer C: to release lock
+
+
+
+
+Q2) Synchronization is a quite complex issue in operating systems. To show your understanding about process synchronization, you are asked to point out a potential problem in this pesudo-code: task2_sync_issue.c.
+ Multiple reader processes can execute this code concurrently by calling reader(). You are asked to describe an issue it may cause and why it can happen. Put your answer in Lab2Answers.txt mentioned above.
+
+
+One problem is that it lacks fairness for writers . If there are readers coming continuously, then the writer will wait till there are no other readers left and till the last reader releases resource semaphore.
+Before it releases resource if another reader enters then again waiter has to wait for till this new reader completes its execution.So even if there is a writer with high priority it has to wait for all the readers
+to complete if the first reader acquires resource before this writer can.Unbounded waiting time for writers.
+
+In update_global_now function if we change the value of readcount then it will lead to severe snychronization issues. 
+
+read(buffer) should be an executed atomcically. If this is not the case then one reader might read half of the buffer and moves the pointer which it has to read next to a particular position but  other reader my reset the pointer which it has to read next to start of the buffer and if context switch happens then first reader will start reading from the start of the buffer again. 
