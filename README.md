@@ -16,4 +16,4 @@ csc501-lab3 ---PA3 (Demand Paging) -
 
 Demand paging is a method of mapping a large address space into a relatively small amount of physical memory. It allows a program to use an address space that is larger than the physical memory, and access non-contiguous sections of the physical memory in a contiguous way. Demand paging is accomplished by using a "backing store" (usually disk) to hold pages of memory that are not currently in use.
 
-Detailed description in Project page
+Detailed description in Project page. Each project has a TMP folder which contains the files that we created or extensively worked on.
